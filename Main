@@ -1,0 +1,149 @@
+package com.example.game;
+
+import javafx.animation.AnimationTimer;
+import javafx.application.Application;
+import javafx.geometry.Bounds;
+import javafx.scene.Cursor;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+
+import java.util.HashSet;
+import java.util.Set;
+
+public class Main extends Application {
+    public ImageView bgr = new ImageView(new Image("C:\\Users\\hacag\\Downloads\\Telegram Desktop\\photo_2025-11-11_18-05-27.jpg"));
+    public final Set<KeyCode> pressedKeys = new HashSet<>();
+    public Group map;
+    public Group walls;
+    @Override
+    public void start(Stage stage){
+        Controller controller = new Controller();
+
+        stage.setTitle("Game");
+
+        map = new Group();
+
+
+        bgr.setLayoutX(0); bgr.setLayoutY(0);
+
+        map.setScaleX(2.5);
+        map.setScaleY(2.5);
+
+        map.getChildren().add(bgr);
+
+        walls = new Group();
+
+        walls.getChildren().addAll(wall.lowerWall);
+        map.getChildren().add(walls);
+
+        Group root = new Group();
+        root.getChildren().addAll(map, chr.hitbox, chr.im, cursor.im);
+
+        Scene scene = new Scene(root, 1920, 1080 );
+        scene.setCursor(Cursor.NONE);
+
+
+        chr.im.setX(chr.X- chr.im.getImage().getWidth()/2);
+        chr.im.setY(chr.Y- chr.im.getImage().getHeight()/2);
+        chr.hitbox.setFill(Color.RED);
+//        chr.hitbox.setVisible(false);
+
+
+        cursor.im.setScaleX(0.1);
+        cursor.im.setScaleY(0.1);
+
+
+
+        scene.setOnKeyPressed(event -> pressedKeys.add(event.getCode()));
+        scene.setOnKeyReleased(event -> pressedKeys.remove(event.getCode()));
+
+        scene.addEventFilter(MouseEvent.MOUSE_MOVED, event -> {
+            moveToCursor(event, cursor.im);
+            rotate(controller, event, chr.im);
+        });
+        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
+            moveToCursor(event, cursor.im);
+            rotate(controller, event, chr.im);
+        });
+
+        new AnimationTimer() {
+            @Override
+            public void handle(long l) {
+                update(controller);
+                chr.im.setX(chr.X);
+                chr.im.setY(chr.Y);
+            }
+        }.start();
+
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.show();
+
+    }
+
+
+    private boolean collides(double moveX, double moveY) {
+        double newMapX = map.getLayoutX() + moveX;
+        double newMapY = map.getLayoutY() + moveY;
+        for (int i = 0; i < walls.getChildren().size(); i++) {
+            javafx.scene.Node wall = walls.getChildren().get(i);
+
+            Bounds bounds = wall.localToScene(wall.getBoundsInLocal());
+            double wallX = bounds.getMinX() + (newMapX - map.getLayoutX());
+            double wallY = bounds.getMinY() + (newMapY - map.getLayoutY());
+            double wallW = bounds.getWidth();
+            double wallH = bounds.getHeight();
+
+            if (chr.Xc + chr.hwidth/2 > wallX &&
+                    chr.Xc - chr.hwidth/2 < wallX + wallW &&
+                    chr.Yc + chr.hheight/2 > wallY &&
+                    chr.Yc - chr.hheight/2 < wallY + wallH) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void update(Controller controller) {
+        if(pressedKeys.contains(KeyCode.W) && !collides(0, chr.speed)) controller.moveUp(map);
+        if(pressedKeys.contains(KeyCode.S) && !collides(0, -chr.speed)) controller.moveDown(map);
+        if(pressedKeys.contains(KeyCode.A) && !collides(chr.speed, 0)) controller.moveLeft(map);
+        if(pressedKeys.contains(KeyCode.D) && !collides(-chr.speed, 0)) controller.moveRight(map);
+    }
+
+    private void moveToCursor(MouseEvent event, ImageView im){
+        cursor.im.setLayoutX(event.getX() - cursor.im.getImage().getWidth() / 2);
+        cursor.im.setLayoutY(event.getY() - cursor.im.getImage().getWidth() / 2);
+    }
+
+    private void rotate(Controller controller, MouseEvent event, ImageView im){
+
+        double x = Math.abs(event.getX() - chr.Xc);
+        double y = Math.abs(event.getY() - chr.Yc);
+        chr.rot = Math.toDegrees(Math.atan2(x,y));
+        if(event.getY()> chr.Yc && event.getX()> chr.Xc){
+            chr.im.setRotate(180- chr.rot);
+        }
+        if(event.getY()> chr.Yc && event.getX()< chr.Xc){
+            chr.im.setRotate(180+ chr.rot);
+        }
+        if(event.getY()< chr.Yc && event.getX()> chr.Xc){
+            chr.im.setRotate(chr.rot);
+        }
+        if(event.getY()< chr.Yc && event.getX()< chr.Xc){
+            chr.im.setRotate(360- chr.rot);
+        }
+        chr.hitbox.setRotate(chr.im.getRotate());
+
+    }
+
+    public static void main(String[] args) {
+        launch();
+    }
+}
