@@ -1,4 +1,4 @@
-package com.example.game;
+package com.example.gameproject;
 
 import javafx.scene.shape.Rectangle;
 
