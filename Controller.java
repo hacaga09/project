@@ -1,20 +1,19 @@
-package com.example.game;
+package com.example.gameproject;
 
-import javafx.scene.Group;
+import javafx.scene.layout.Pane;
 
 public class Controller {
 
-
-    public void moveUp(Group map) {
-        map.setLayoutY(map.getLayoutY()+ chr.speed);
+    public void moveUp(Pane map) {
+        map.setLayoutY(map.getLayoutY() + chr.speed);
     }
-    public void moveDown(Group map) {
-        map.setLayoutY(map.getLayoutY()- chr.speed);
+    public void moveDown(Pane map) {
+        map.setLayoutY(map.getLayoutY() - chr.speed);
     }
-    public void moveLeft(Group map) {
-        map.setLayoutX(map.getLayoutX()+ chr.speed);
+    public void moveLeft(Pane map) {
+        map.setLayoutX(map.getLayoutX() + chr.speed);
     }
-    public void moveRight(Group map) {
-        map.setLayoutX(map.getLayoutX()- chr.speed);
+    public void moveRight(Pane map) {
+        map.setLayoutX(map.getLayoutX() - chr.speed);
     }
 }
