@@ -4,16 +4,16 @@ import javafx.scene.layout.Pane;
 
 public class Controller {
 
-    public void moveUp(Pane map) {
+    public void up(Pane map) {
         map.setLayoutY(map.getLayoutY() + chr.speed);
     }
-    public void moveDown(Pane map) {
+    public void down(Pane map) {
         map.setLayoutY(map.getLayoutY() - chr.speed);
     }
-    public void moveLeft(Pane map) {
+    public void left(Pane map) {
         map.setLayoutX(map.getLayoutX() + chr.speed);
     }
-    public void moveRight(Pane map) {
+    public void right(Pane map) {
         map.setLayoutX(map.getLayoutX() - chr.speed);
     }
 }
