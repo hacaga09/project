@@ -7,6 +7,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -14,6 +15,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
@@ -26,16 +32,25 @@ public class Main extends Application {
     private final double centerx=screenw/2.0;
     private final double centery=screenh/2.0;
 
-    public ImageView bgr=new ImageView(new Image("C:\\Users\\hacag\\Downloads\\Telegram Desktop\\photo_2025-11-11_18-05-27.jpg"));
+    public ImageView bgr=new ImageView(new Image("C:\\Users\\hacag\\Downloads\\map.png"));
 
     public final Set<KeyCode> keys=new HashSet<>();
     public Pane map;
     public Pane walls;
     public List<Bullet> bullets=new ArrayList<>();
+    public List<Enemy> enemies = new ArrayList<>();
 
     private boolean shooting=false;
     private long lastshot=0;
     private long firerate=150000000;
+
+
+    private boolean gameOver = false;
+    private Label gameOverLabel;
+
+
+    private Rectangle bgRect;
+    private double hue = 0;
 
     @Override
     public void start(Stage stage){
@@ -43,39 +58,74 @@ public class Main extends Application {
         stage.setTitle("Hotline JavaFX");
 
         map=new Pane();
-        bgr.setLayoutX(0);
-        bgr.setLayoutY(0);
-
+        bgr.setLayoutX(0); bgr.setLayoutY(0);
         map.getTransforms().add(new Scale(zoom, zoom, 0, 0));
         map.getChildren().add(bgr);
 
         walls=new Pane();
-        walls.getChildren().addAll(wall.lowerWall);
+        walls.getChildren().addAll(wall.w1, wall.w2, wall.w3, wall.w4, wall.w5, wall.w6,
+                                    wall.w7, wall.w8, wall.w9, wall.w10, wall.w11, wall.w12,
+                                    wall.w13,wall.w14, wall.w15, wall.w16, wall.w17);
+        wall.w1.setFill(Color.RED);
+        wall.w2.setFill(Color.RED);
+        wall.w3.setFill(Color.RED);
+        wall.w4.setFill(Color.RED);
+        wall.w5.setFill(Color.RED);
+        wall.w6.setFill(Color.RED);
+        wall.w7.setFill(Color.RED);
+        wall.w8.setFill(Color.RED);
+        wall.w9.setFill(Color.RED);
+        wall.w10.setFill(Color.RED);
+        wall.w11.setFill(Color.RED);
+        wall.w12.setFill(Color.RED);
+        wall.w13.setFill(Color.RED);
+        wall.w14.setFill(Color.RED);
+        wall.w15.setFill(Color.RED);
+        wall.w16.setFill(Color.RED);
+        wall.w17.setFill(Color.RED);
+
         map.getChildren().add(walls);
+
+        double startX = 475;     //коорды спавна игрока
+        double startY = 850;
+
+
+        map.setLayoutX(centerx - (startX * zoom));  //сдвиг карты под спавн
+        map.setLayoutY(centery - (startY * zoom));
 
         chr.X=centerx;
         chr.Y=centery;
-        chr.Xc=centerx;
-        chr.Yc=centery;
+
+
+        spawnEnemy(500, 500);      //спавн врагов
+        spawnEnemy(800, 300);
+
+        chr.X=centerx; chr.Y=centery;
+        chr.Xc=centerx; chr.Yc=centery;
 
         chr.hitbox.setFill(Color.TRANSPARENT);
         chr.hitbox.setStroke(Color.TRANSPARENT);
 
-        cursor.im.setScaleX(0.1);
-        cursor.im.setScaleY(0.1);
+        cursor.im.setScaleX(0.1); cursor.im.setScaleY(0.1);
+
+
+        gameOverLabel = new Label("YOU DIED");          //надпись при смерти
+        gameOverLabel.setTextFill(Color.RED);
+        gameOverLabel.setFont(new Font("Arial", 100));
+        gameOverLabel.setLayoutX(screenw/2 - 250);
+        gameOverLabel.setLayoutY(screenh/2 - 50);
+        gameOverLabel.setVisible(false);
+
+        bgRect = new Rectangle(0,0,screenw, screenh);
 
         Pane root=new Pane();
-        root.getChildren().addAll(map, chr.hitbox, chr.im, cursor.im);
+        root.getChildren().addAll(bgRect, map, chr.hitbox, chr.im, cursor.im, gameOverLabel);
 
         Scene scene=new Scene(root, screenw, screenh);
         scene.setCursor(Cursor.NONE);
 
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            keys.add(event.getCode());
-        });
-        scene.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
-            keys.remove(event.getCode());
-        });
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> keys.add(event.getCode()));
+        scene.addEventFilter(KeyEvent.KEY_RELEASED, event -> keys.remove(event.getCode()));
 
         stage.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if(!newVal){
@@ -86,26 +136,24 @@ public class Main extends Application {
 
         scene.addEventFilter(MouseEvent.MOUSE_MOVED, this::mouse);
         scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, this::mouse);
-        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            shooting=true;
-        });
-        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            shooting=false;
-        });
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> shooting=true);
+        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> shooting=false);
 
         new AnimationTimer(){
             @Override
             public void handle(long now){
-                if(!keys.isEmpty()){
-                    move(controller);
-                }
+                if (gameOver) return;      //при смерти
 
+                if(!keys.isEmpty()) move(controller);
                 if(shooting && (now-lastshot >= firerate)){
                     shoot();
                     lastshot=now;
                 }
 
                 updbullets();
+                updateEnemies();
+                checkPlayerDeath();
+                updateBackground();
                 fixpos();
             }
         }.start();
@@ -115,45 +163,89 @@ public class Main extends Application {
         stage.show();
     }
 
+
+    private void updateBackground() {  //функция для градиента фона
+        hue += 1; //скорость переливания
+        if (hue > 360) hue = 0;
+
+                        //(оттенок, насыщенность, яркость)
+        Color c1 = Color.hsb(hue, 0.8, 0.8);
+        Color c2 = Color.hsb(hue - 60, 0.8, 0.4);
+
+        //(startX, startY, endX, endY, proportional, cycleMethod, stops...)
+        LinearGradient gradient = new LinearGradient(
+                0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+                new Stop(0, c1),
+                new Stop(1, c2)
+        );
+
+        bgRect.setFill(gradient);
+    }
+
+    private void spawnEnemy(double x, double y) {
+        Enemy e = new Enemy(x, y);
+        enemies.add(e);
+        map.getChildren().add(e.hitbox);
+        map.getChildren().add(e.im);
+    }
+
+    private void updateEnemies() {
+        Point2D p = map.sceneToLocal(chr.X, chr.Y);
+
+        Iterator<Enemy> iter = enemies.iterator();
+        while(iter.hasNext()) {
+            Enemy e = iter.next();
+
+            if (!e.dead) {
+                e.update(p.getX(), p.getY(), walls);
+            } else {
+                map.getChildren().remove(e.im);
+                map.getChildren().remove(e.hitbox);
+                iter.remove();
+            }
+        }
+    }
+
+    private void checkPlayerDeath() {
+        Point2D p = map.sceneToLocal(chr.X, chr.Y);
+
+        for (int i = 0; i < enemies.size(); i++) {
+            Enemy e = enemies.get(i);
+
+            double ex = e.hitbox.getX() + e.hitbox.getWidth()/2;
+            double ey = e.hitbox.getY() + e.hitbox.getHeight()/2;
+
+            double dist = Math.sqrt(Math.pow(p.getX() - ex, 2) + Math.pow(p.getY() - ey, 2));
+
+            if (dist < 50) {
+                gameOver = true;
+                gameOverLabel.setVisible(true);
+            }
+        }
+    }
+
     private void fixpos(){
         double imgw=chr.im.getImage().getWidth();
         double imgh=chr.im.getImage().getHeight();
-        if(imgw==0){
-            return;
-        }
-
-        chr.im.setX(centerx-imgw/2);
-        chr.im.setY(centery-imgh/2);
-
-        chr.hitbox.setX(centerx-chr.hwidth/2);
-        chr.hitbox.setY(centery-chr.hheight/2);
+        if(imgw==0) return;
+        chr.im.setX(centerx-imgw/2); chr.im.setY(centery-imgh/2);
+        chr.hitbox.setX(centerx-chr.hwidth/2); chr.hitbox.setY(centery-chr.hheight/2);
     }
 
     private void move(Controller controller){
-        if(keys.contains(KeyCode.W) && !hit(0, chr.speed)){
-            controller.moveUp(map);
-        }
-        if(keys.contains(KeyCode.S) && !hit(0, -chr.speed)){
-            controller.moveDown(map);
-        }
-        if(keys.contains(KeyCode.A) && !hit(chr.speed, 0)){
-            controller.moveLeft(map);
-        }
-        if(keys.contains(KeyCode.D) && !hit(-chr.speed, 0)){
-            controller.moveRight(map);
-        }
+        if(keys.contains(KeyCode.W) && !hit(0, chr.speed)) controller.up(map);
+        if(keys.contains(KeyCode.S) && !hit(0, -chr.speed)) controller.down(map);
+        if(keys.contains(KeyCode.A) && !hit(chr.speed, 0)) controller.left(map);
+        if(keys.contains(KeyCode.D) && !hit(-chr.speed, 0)) controller.right(map);
     }
 
     private void shoot(){
         double rot=chr.im.getRotate();
         double dist=80;
-
         double rad=Math.toRadians(rot);
         double mx=centerx+(Math.sin(rad)*dist);
         double my=centery-(Math.cos(rad)*dist);
-
         Point2D p=map.sceneToLocal(mx, my);
-
         Bullet b=new Bullet(p.getX(), p.getY(), rot);
         bullets.add(b);
         map.getChildren().add(b.body);
@@ -167,22 +259,31 @@ public class Main extends Application {
 
             for(int i=0; i<steps; i++){
                 b.step(1.0/steps);
+                boolean impact=false;
 
-                boolean hitWall=false;
-
+                
                 for(int j=0; j<walls.getChildren().size(); j++){
-                    Node n=walls.getChildren().get(j); // Берем стену по номеру j
-
+                    Node n=walls.getChildren().get(j);
                     if(b.body.getBoundsInParent().intersects(n.getBoundsInParent())){
-                        b.dead=true;
-                        hitWall=true;
-                        break;
+                        b.dead=true; impact=true; break;
                     }
                 }
 
-                if(hitWall){
-                    break;
+                if (!impact) {
+                    for (int k = 0; k < enemies.size(); k++) {
+                        Enemy e = enemies.get(k);
+                        if(b.body.getBoundsInParent().intersects(e.hitbox.getBoundsInParent())) {
+                            e.hp--;
+                            if (e.hp <= 0) {
+                                e.dead = true;
+                            }
+                            b.dead = true;
+                            impact = true;
+                            break;
+                        }
+                    }
                 }
+                if(impact) break;
             }
 
             if(b.dead){
@@ -195,20 +296,13 @@ public class Main extends Application {
     private boolean hit(double dx, double dy){
         double nmx=map.getLayoutX()+dx;
         double nmy=map.getLayoutY()+dy;
-
         for(int i=0; i<walls.getChildren().size(); i++){
-            Node n=walls.getChildren().get(i);
+            javafx.scene.Node n=walls.getChildren().get(i);
             Bounds b=n.localToScene(n.getBoundsInLocal());
-
             double wx=b.getMinX()+(nmx-map.getLayoutX());
             double wy=b.getMinY()+(nmy-map.getLayoutY());
-
-            if(centerx+chr.hwidth/2 > wx &&
-                    centerx- chr.hwidth/2 < wx+b.getWidth() &&
-                    centery+chr.hheight/2 > wy &&
-                    centery-chr.hheight/2 < wy+b.getHeight()){
-                return true;
-            }
+            if(centerx+chr.hwidth/2 > wx && centerx-chr.hwidth/2 < wx+b.getWidth() &&
+                    centery+chr.hheight/2 > wy && centery-chr.hheight/2 < wy+b.getHeight()) return true;
         }
         return false;
     }
@@ -216,13 +310,10 @@ public class Main extends Application {
     private void mouse(MouseEvent event){
         cursor.im.setLayoutX(event.getX()-cursor.im.getImage().getWidth()/2);
         cursor.im.setLayoutY(event.getY()- cursor.im.getImage().getWidth()/2);
-
         double dx=event.getX()-centerx;
         double dy=event.getY()-centery;
-
         chr.rot=Math.toDegrees(Math.atan2(dy, dx));
         double ang=chr.rot+90;
-
         chr.im.setRotate(ang);
         chr.hitbox.setRotate(ang);
     }
