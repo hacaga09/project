@@ -49,7 +49,9 @@ public class Enemy {
 
 
         double distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < 5) return true;
+        if (distance < 5) {
+            return true;
+        }
         double stepX = dx / distance;
         double stepY = dy / distance;
 
@@ -64,6 +66,7 @@ public class Enemy {
                 Node wall = walls.getChildren().get(j);
 
                 if (wall.getBoundsInParent().contains(currentX, currentY)) {
+                    return false;
                 }
             }
         }
