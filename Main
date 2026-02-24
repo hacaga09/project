@@ -63,28 +63,41 @@ public class Main extends Application {
         map.getChildren().add(bgr);
 
         walls=new Pane();
-        walls.getChildren().addAll(wall.w1, wall.w2, wall.w3, wall.w4, wall.w5, wall.w6,
+        walls.getChildren().addAll(wall.FINAL, wall.w1, wall.w2, wall.w3, wall.w4, wall.w5, wall.w6,
                                     wall.w7, wall.w8, wall.w9, wall.w10, wall.w11, wall.w12,
-                                    wall.w13,wall.w14, wall.w15, wall.w16, wall.w17);
-        wall.w1.setFill(Color.RED);
-        wall.w2.setFill(Color.RED);
-        wall.w3.setFill(Color.RED);
-        wall.w4.setFill(Color.RED);
-        wall.w5.setFill(Color.RED);
-        wall.w6.setFill(Color.RED);
-        wall.w7.setFill(Color.RED);
-        wall.w8.setFill(Color.RED);
-        wall.w9.setFill(Color.RED);
-        wall.w10.setFill(Color.RED);
-        wall.w11.setFill(Color.RED);
-        wall.w12.setFill(Color.RED);
-        wall.w13.setFill(Color.RED);
-        wall.w14.setFill(Color.RED);
-        wall.w15.setFill(Color.RED);
-        wall.w16.setFill(Color.RED);
-        wall.w17.setFill(Color.RED);
+                                    wall.w13,wall.w14, wall.w15, wall.w16, wall.w17, wall.w18,
+                                  wall.w19,wall.w20,wall.w21,wall.w22,wall.w23,wall.w24,wall.w25);
+        walls.setOpacity(0);
+//        wall.w1.setFill(Color.RED);
+//        wall.w2.setFill(Color.RED);
+//        wall.w3.setFill(Color.RED);
+//        wall.w4.setFill(Color.RED);
+//        wall.w5.setFill(Color.RED);
+//        wall.w6.setFill(Color.RED);
+//        wall.w7.setFill(Color.RED);
+//        wall.w8.setFill(Color.RED);
+//        wall.w9.setFill(Color.RED);
+//        wall.w10.setFill(Color.RED);
+//        wall.w11.setFill(Color.RED);
+//        wall.w12.setFill(Color.RED);
+//        wall.w13.setFill(Color.RED);
+//        wall.w14.setFill(Color.RED);
+//        wall.w15.setFill(Color.RED);
+//        wall.w16.setFill(Color.RED);
+//        wall.w17.setFill(Color.RED);
+//        wall.w18.setFill(Color.RED);
+//        wall.w19.setFill(Color.RED);
+//        wall.w20.setFill(Color.RED);
+//        wall.w21.setFill(Color.RED);
+//        wall.w22.setFill(Color.RED);
+//        wall.w23.setFill(Color.RED);
+//        wall.w24.setFill(Color.RED);
+//        wall.w25.setFill(Color.RED);
+//        wall.FINAL.setFill(Color.BROWN);
+        Rectangle finalWallTexture = new Rectangle(494,240,60, 5);
+        finalWallTexture.setFill(Color.BROWN);
 
-        map.getChildren().add(walls);
+        map.getChildren().addAll(walls, finalWallTexture);
 
         double startX = 475;     //коорды спавна игрока
         double startY = 850;
@@ -97,8 +110,12 @@ public class Main extends Application {
         chr.Y=centery;
 
 
-        spawnEnemy(500, 500);      //спавн врагов
+        spawnEnemy(500, 500);
         spawnEnemy(800, 300);
+        spawnEnemy(680, 670);
+        spawnEnemy(70, 285);
+        spawnEnemy(110,455);
+        spawnEnemy(103,810);
 
         chr.X=centerx; chr.Y=centery;
         chr.Xc=centerx; chr.Yc=centery;
@@ -109,7 +126,7 @@ public class Main extends Application {
         cursor.im.setScaleX(0.1); cursor.im.setScaleY(0.1);
 
 
-        gameOverLabel = new Label("YOU DIED");          //надпись при смерти
+        gameOverLabel = new Label("YOU DIED");
         gameOverLabel.setTextFill(Color.RED);
         gameOverLabel.setFont(new Font("Arial", 100));
         gameOverLabel.setLayoutX(screenw/2 - 250);
@@ -142,12 +159,17 @@ public class Main extends Application {
         new AnimationTimer(){
             @Override
             public void handle(long now){
-                if (gameOver) return;      //при смерти
+                if (gameOver) return;
 
                 if(!keys.isEmpty()) move(controller);
                 if(shooting && (now-lastshot >= firerate)){
                     shoot();
                     lastshot=now;
+                }
+
+                if(enemies.isEmpty()){
+                    walls.getChildren().remove(wall.FINAL);
+                    map.getChildren().remove(finalWallTexture);
                 }
 
                 updbullets();
@@ -261,7 +283,7 @@ public class Main extends Application {
                 b.step(1.0/steps);
                 boolean impact=false;
 
-                
+
                 for(int j=0; j<walls.getChildren().size(); j++){
                     Node n=walls.getChildren().get(j);
                     if(b.body.getBoundsInParent().intersects(n.getBoundsInParent())){
@@ -297,8 +319,7 @@ public class Main extends Application {
         double nmx=map.getLayoutX()+dx;
         double nmy=map.getLayoutY()+dy;
         for(int i=0; i<walls.getChildren().size(); i++){
-            javafx.scene.Node n=walls.getChildren().get(i);
-            Bounds b=n.localToScene(n.getBoundsInLocal());
+            Bounds b=walls.getChildren().get(i).localToScene(walls.getChildren().get(i).getBoundsInLocal());
             double wx=b.getMinX()+(nmx-map.getLayoutX());
             double wy=b.getMinY()+(nmy-map.getLayoutY());
             if(centerx+chr.hwidth/2 > wx && centerx-chr.hwidth/2 < wx+b.getWidth() &&
@@ -317,6 +338,7 @@ public class Main extends Application {
         chr.im.setRotate(ang);
         chr.hitbox.setRotate(ang);
     }
+
 
     public static void main(String[] args){
         launch();
