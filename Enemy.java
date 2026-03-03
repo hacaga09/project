@@ -7,12 +7,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 
 public class Enemy {
-    public ImageView im = new ImageView(new Image("C:\\Users\\hacag\\Downloads\\enemyknife.png"));
+    public ImageView im = new ImageView(new Image(getClass().getResource("/enemyknife.png").toExternalForm()));
     public Rectangle hitbox;
     public boolean dead = false;
 
     public int hp = 3;
-    public double speed = 2;
+    public double speed = 5;
     public boolean seePlayer = false;
 
     public Enemy(double startX, double startY) {
