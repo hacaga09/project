@@ -62,6 +62,7 @@ public class Main extends Application {
     private Stage window;
 
     public Rectangle finalWallTexture;
+    public Rectangle finalWallTexture2;
 
     public int maxAmmo = 4;
     public int currentAmmo = 4;
@@ -83,7 +84,7 @@ public class Main extends Application {
         map.getChildren().add(bgr);
 
         walls = new Pane();
-        walls.setOpacity(0);
+        walls.setOpacity(0.5);
 
         map.getChildren().addAll(walls);
 
@@ -131,6 +132,7 @@ public class Main extends Application {
             @Override
             public void handle(long now) {
                 if (gameOver) {
+                    loadLevel(2);
                     return;
                 }
 
@@ -171,9 +173,9 @@ public class Main extends Application {
                 }
 
                 if (enemies.isEmpty()) {
-                    walls.getChildren().remove(wall.FINAL);
+                    walls.getChildren().removeAll(wall.FINAL, wall.FINAL2);
                     if (finalWallTexture != null) {
-                        map.getChildren().remove(finalWallTexture);
+                        map.getChildren().removeAll(finalWallTexture, finalWallTexture2);
                     }
                 }
 
@@ -181,6 +183,8 @@ public class Main extends Application {
                 if (exitZone != null && exitZone.getBoundsInParent().contains(p)) {
                     if (currentLevel == 1) {
                         unlockedLevels = 2;
+                    } else{
+                        unlockedLevels = 3;
                     }
                     menu();
                 }
@@ -365,7 +369,7 @@ public class Main extends Application {
         b1.setFont(new Font("Arial", 30));
         b1.setOnAction(e -> loadLevel(1));
 
-        Button b2 = new Button("X LEVEL 2 X");
+        Button b2 = new Button("LEVEL 2");
         b2.setFont(new Font("Arial", 30));
         if (unlockedLevels < 2) {
             b2.setDisable(true);
@@ -373,7 +377,15 @@ public class Main extends Application {
         }
         b2.setOnAction(e -> loadLevel(2));
 
-        layout.getChildren().addAll(title, b1, b2);
+        Button b3 = new Button("LEVEL 3");
+        b3.setFont(new Font("Arial", 30));
+        if (unlockedLevels < 3) {
+            b3.setDisable(true);
+            b3.setText("LEVEL 3 (LOCKED)");
+        }
+        b3.setOnAction(e -> loadLevel(3));
+
+        layout.getChildren().addAll(title, b1, b2, b3);
         menuScene = new Scene(layout, screenw, screenh);
         window.setScene(menuScene);
     }
@@ -425,12 +437,40 @@ public class Main extends Application {
             map.setLayoutY(centery - (startY * zoom));
         } else if (level == 2) {
             bgr.setImage(new Image(getClass().getResource("/l2map.png").toExternalForm()));
-            spawnEnemy(400, 400);
-            spawnEnemy(600, 600);
+            walls.getChildren().addAll(wall.w26, wall.w27, wall.w28, wall.w29, wall.w30,
+                    wall.w31, wall.w32, wall.w33, wall.w34, wall.w35, wall.w36, wall.w37,
+                    wall.w38, wall.w39, wall.w40, wall.w41, wall.w42, wall.w43, wall.w44,
+                    wall.w45, wall.w46, wall.w47, wall.w48, wall.w49, wall.w50, wall.w51, wall.w52,
+                    wall.w53, wall.w54, wall.w55, wall.w56, wall.w57, wall.w58, wall.w59, wall.w60,
+                    wall.w61, wall.w62, wall.w63, wall.w64, wall.w65, wall.w66, wall.w67, wall.w68, wall.w69, wall.FINAL2);
 
-            exitZone = new Rectangle(800, 800, 100, 100);
+            if (finalWallTexture2 != null) {
+                map.getChildren().remove(finalWallTexture2);
+            }
+            finalWallTexture2 = new Rectangle(548, 214, 600-548, 8);
+            finalWallTexture2.setFill(Color.BROWN);
+            map.getChildren().add(finalWallTexture2);
+
+            spawnEnemy(762,162);
+
+            exitZone = new Rectangle(530, 22, 608-530, 37-22+20);
             exitZone.setFill(Color.GREEN);
             map.getChildren().add(exitZone);
+
+            startX = 644;
+            startY = 955;
+
+            map.setLayoutX(centerx - (startX * zoom));
+            map.setLayoutY(centery - (startY * zoom));
+        } else if(level==3){
+            bgr.setImage(new Image(getClass().getResource("/l3map.png").toExternalForm()));
+
+            exitZone = new Rectangle(530, 22, 608-530, 37-22+20);
+            exitZone.setFill(Color.GREEN);
+            map.getChildren().add(exitZone);
+
+            startX = 644;
+            startY = 955;
 
             map.setLayoutX(centerx - (startX * zoom));
             map.setLayoutY(centery - (startY * zoom));
